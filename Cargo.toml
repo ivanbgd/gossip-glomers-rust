@@ -1,0 +1,25 @@
+[package]
+name = "gossip-glomers"
+version = "0.1.0"
+authors = ["Ivan Lazarević"]
+repository = "https://github.com/ivanbgd/gossip-glomers-rust"
+description = "My implementation of https://fly.io/dist-sys/ in Rust."
+keywords = ["distributed-systems", "maelstrom", "simulation", "testing"]
+categories = ["concurrency", "network-programming", "simulation"]
+license = "MIT"
+readme = "README.md"
+edition = "2024"
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "gossip-glomers"
+path = "src/main.rs"
+
+[dependencies]
+
+[profile.release]
+strip = "symbols"
+lto = "fat"
+codegen-units = 1
