@@ -6,6 +6,8 @@
 //! Maelstrom nodes receive messages on `STDIN`, send messages on `STDOUT`, and log debugging output on `STDERR`.
 //! Maelstrom nodes must not print anything that is not a message to `STDOUT`.
 //! Maelstrom will log `STDERR` output to disk for you.
+//!
+//! Both `STDIN` and `STDOUT` messages are JSON objects, separated by newlines (`\n`).
 
 use serde::{Deserialize, Serialize};
 
@@ -15,23 +17,23 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Message {
     /// A string identifying the node this message came from.
-    src: String,
+    pub src: String,
     /// A string identifying the node this message is for.
-    dest: String,
+    pub dest: String,
     /// An object: the body (payload) of the message.
-    body: Body,
+    pub body: Body,
 }
 
 /// Message bodies
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Body {
     /// (optional) A unique integer identifier.
-    msg_id: Option<usize>,
+    pub msg_id: Option<usize>,
     /// (optional) For req/response, the `msg_id` of the request.
-    in_reply_to: Option<usize>,
+    pub in_reply_to: Option<usize>,
     /// (mandatory) A string identifying the type of message this is, plus optional data contained within.
     #[serde(flatten)]
-    payload: Payload,
+    pub payload: Payload,
 }
 
 /// Various payloads for message bodies
@@ -46,7 +48,7 @@ pub struct Body {
 pub enum Payload {
     /// [Workload: Echo](https://github.com/jepsen-io/maelstrom/blob/main/doc/workloads.md#workload-echo)
     ///
-    /// A simple echo workload: sends a message, and expects to get that same message back.
+    /// A simple echo workload: a client sends a message, and expects to get that same message back from our server.
     ///
     /// Clients send echo messages to servers with an `echo` field containing an arbitrary payload
     /// they'd like to have sent back.
