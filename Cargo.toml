@@ -10,6 +10,21 @@ license = "MIT"
 readme = "README.md"
 edition = "2024"
 
+[features]
+# The type of the node that we'd like to build, run and test.
+# Modify this as needed.
+# Only provide a single value at a time.
+# This is a special "default" feature that is enabled unless explicitly disabled.
+# Since we have it defined, we can just modify it here, and we don't have to provide
+# a node type on command line when building/running, and we shouldn't!
+default = ["echo_node"]
+
+# Simple features that represent a node type that we'd like to test.
+# Used for conditional compilation within the code.
+# Do not change these, but we can always add new ones.
+echo_node = []
+unique_id_gen_node = []
+
 [lib]
 path = "src/lib.rs"
 
@@ -18,6 +33,9 @@ name = "gossip-glomers"
 path = "src/main.rs"
 
 [dependencies]
+anyhow = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 
 [profile.release]
 strip = "symbols"
