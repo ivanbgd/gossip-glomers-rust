@@ -25,10 +25,13 @@
 //! This will run a 3-node cluster for 30 seconds and request new IDs at the rate of 1000 requests per second.
 //! It checks for total availability and will induce network partitions during the test.
 //! It will also verify that all IDs are unique.
+//!
+//! Everything looks good! ヽ(‘ー`)ノ
 
-use crate::IdType;
 use crate::message::{Body, Message, Payload};
-use anyhow::{Context, Result, bail};
+use crate::node::Node;
+use crate::IdType;
+use anyhow::{bail, Context, Result};
 use std::fmt::Debug;
 use std::io::{StdoutLock, Write};
 
@@ -49,18 +52,32 @@ pub struct UniqueIDGeneratorNode {
     pub guid: IdType,
 }
 
-impl UniqueIDGeneratorNode {
-    /// Creates and returns a new node.
-    pub fn new() -> Self {
+impl Node for UniqueIDGeneratorNode {
+    fn new() -> Self {
         Self {
             msg_id: 0,
             node_id: None,
-            guid: IdType::default(),
+            guid: IdType::new(),
         }
     }
 
-    /// A processing step in a node's state-machine.
-    pub fn step(&mut self, request: Message, output_lock: &mut StdoutLock) -> Result<()> {
+    fn get_msg_id(&self) -> usize {
+        self.msg_id
+    }
+
+    fn incr_msg_id(&mut self) {
+        self.msg_id += 1;
+    }
+
+    fn get_node_id(&self) -> Option<String> {
+        self.node_id.clone()
+    }
+
+    fn set_node_id(&mut self, value: Option<String>) {
+        self.node_id = value;
+    }
+
+    fn step(&mut self, request: Message<Payload>, output_lock: &mut StdoutLock) -> Result<()> {
         match request.body.payload {
             Payload::Generate => {
                 let this = self.node_id.clone().expect("expected some self.node_id");
@@ -87,30 +104,7 @@ impl UniqueIDGeneratorNode {
 
                 self.msg_id += 1;
             }
-            Payload::GenerateOk { id } => {
-                self.guid = id;
-            }
-            Payload::Init { node_id, .. } => {
-                self.node_id = Some(node_id);
-
-                let response = Message {
-                    src: self.node_id.clone().expect("expected some self.node_id"),
-                    dest: request.src,
-                    body: Body {
-                        msg_id: Some(self.msg_id),
-                        in_reply_to: request.body.msg_id,
-                        payload: Payload::InitOk,
-                    },
-                };
-
-                serde_json::to_writer(&mut *output_lock, &response)
-                    .context("serialization of response init_ok message failed")?;
-                output_lock
-                    .write_all(b"\n")
-                    .context("failed to write newline")?;
-
-                self.msg_id += 1;
-            }
+            Payload::GenerateOk { .. } => {}
             other => bail!("received unexpected request message type: {other:?}"),
         }
 

@@ -2,6 +2,7 @@
 
 pub mod echo;
 pub mod message;
+pub mod node;
 pub mod unique_id_gen;
 
 /// The type of the generated globally-unique ID.
