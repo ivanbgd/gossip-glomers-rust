@@ -26,9 +26,9 @@
 //! It checks for total availability and will induce network partitions during the test.
 //! It will also verify that all IDs are unique.
 
+use crate::IdType;
 use crate::message::{Body, Message, Payload};
-use anyhow::{bail, Context, Result};
-use serde::Serialize;
+use anyhow::{Context, Result, bail};
 use std::fmt::Debug;
 use std::io::{StdoutLock, Write};
 
@@ -39,37 +39,36 @@ use std::io::{StdoutLock, Write};
 ///
 /// Generated IDs may be of any type: strings, booleans, integers, floats, compound JSON values, etc.
 #[derive(Default, Debug)]
-pub struct UniqueIDGeneratorNode<ID> {
+pub struct UniqueIDGeneratorNode {
     /// A locally-unique integer identifier for a message from a node. It isn't globally-unique.
     pub msg_id: usize,
     /// A unique node name. Maelstrom sets the node ID for our node(s), during the initialization phase.
     pub node_id: Option<String>,
     /// A generated globally-unique ID.
     /// It may be of any type: strings, booleans, integers, floats, compound JSON values, etc.
-    pub guid: ID,
+    pub guid: IdType,
 }
 
-impl<ID> UniqueIDGeneratorNode<ID>
-where
-    ID: Clone + Debug + Default + Serialize,
-{
+impl UniqueIDGeneratorNode {
     /// Creates and returns a new node.
     pub fn new() -> Self {
         Self {
             msg_id: 0,
             node_id: None,
-            guid: ID::default(),
+            guid: IdType::default(),
         }
     }
 
     /// A processing step in a node's state-machine.
-    pub fn step(&mut self, request: Message<ID>, output_lock: &mut StdoutLock) -> Result<()> {
+    pub fn step(&mut self, request: Message, output_lock: &mut StdoutLock) -> Result<()> {
         match request.body.payload {
             Payload::Generate => {
-                // self.guid = 666; TODO
+                let this = self.node_id.clone().expect("expected some self.node_id");
+                let msg_id = self.msg_id;
+                self.guid = format!("{this}-{msg_id}");
 
                 let response = Message {
-                    src: self.node_id.clone().expect("expected some self.node_id"),
+                    src: this,
                     dest: request.src,
                     body: Body {
                         msg_id: Some(self.msg_id),
@@ -100,7 +99,7 @@ where
                     body: Body {
                         msg_id: Some(self.msg_id),
                         in_reply_to: request.body.msg_id,
-                        payload: Payload::<ID>::InitOk,
+                        payload: Payload::InitOk,
                     },
                 };
 

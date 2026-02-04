@@ -22,11 +22,9 @@
 //! Everything looks good! ヽ(‘ー`)ノ
 
 use crate::message::{Body, Message, Payload};
-use anyhow::{bail, Context, Result};
-use serde::Serialize;
+use anyhow::{Context, Result, bail};
 use std::fmt::Debug;
 use std::io::{StdoutLock, Write};
-use std::marker::PhantomData;
 
 /// # The Echo Node (Server)
 ///
@@ -34,33 +32,27 @@ use std::marker::PhantomData;
 ///
 /// Maelstrom sets the node ID for our node(s), during the initialization phase.
 #[derive(Default, Debug)]
-pub struct EchoNode<ID> {
+pub struct EchoNode {
     /// A locally-unique integer identifier for a message from a node. It isn't globally-unique.
     pub msg_id: usize,
     /// A unique node name. Maelstrom sets the node ID for our node(s), during the initialization phase.
     pub node_id: Option<String>,
-    /// Required as we don't use the `ID` generic type parameter in this node type.
-    phantom: PhantomData<ID>,
 }
 
-impl<ID> EchoNode<ID>
-where
-    ID: Debug + Default + Serialize,
-{
+impl EchoNode {
     /// Creates and returns a new node.
     pub const fn new() -> Self {
         Self {
             msg_id: 0,
             node_id: None,
-            phantom: PhantomData,
         }
     }
 
     /// A processing step in a node's state-machine.
-    pub fn step(&mut self, request: Message<ID>, output_lock: &mut StdoutLock) -> Result<()> {
+    pub fn step(&mut self, request: Message, output_lock: &mut StdoutLock) -> Result<()> {
         match request.body.payload {
             Payload::Echo { echo } => {
-                let response = Message::<ID> {
+                let response = Message {
                     src: self.node_id.clone().expect("expected some self.node_id"), // == request.dest,
                     dest: request.src,
                     body: Body {
@@ -88,7 +80,7 @@ where
                     body: Body {
                         msg_id: Some(self.msg_id),
                         in_reply_to: request.body.msg_id,
-                        payload: Payload::<ID>::InitOk,
+                        payload: Payload::InitOk,
                     },
                 };
 

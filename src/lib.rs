@@ -6,4 +6,4 @@ pub mod unique_id_gen;
 
 /// The type of the generated globally-unique ID.
 /// It may be any type: strings, booleans, integers, floats, compound JSON values, etc.
-pub type IdType = usize;
+pub type IdType = String;

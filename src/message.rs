@@ -9,31 +9,32 @@
 //!
 //! Both `STDIN` and `STDOUT` messages are JSON objects, separated by newlines (`\n`).
 
+use crate::IdType;
 use serde::{Deserialize, Serialize};
 
 /// Messages
 ///
 /// Both `STDIN` and `STDOUT` messages are JSON objects, separated by newlines (`\n`).
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Message<ID> {
+pub struct Message {
     /// A string identifying the node this message came from.
     pub src: String,
     /// A string identifying the node this message is for.
     pub dest: String,
     /// An object: the body (payload) of the message.
-    pub body: Body<ID>,
+    pub body: Body,
 }
 
 /// Message bodies
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Body<ID> {
+pub struct Body {
     /// (optional) A locally-unique integer identifier for a message from a node. It isn't globally-unique.
     pub msg_id: Option<usize>,
     /// (optional) For req/response, the `msg_id` of the request.
     pub in_reply_to: Option<usize>,
     /// (mandatory) A string identifying the type of message this is, plus optional data contained within.
     #[serde(flatten)]
-    pub payload: Payload<ID>,
+    pub payload: Payload,
 }
 
 /// Various payloads for message bodies
@@ -45,7 +46,7 @@ pub struct Body<ID> {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename_all = "snake_case")]
-pub enum Payload<ID> {
+pub enum Payload {
     /// [Workload: Echo](https://github.com/jepsen-io/maelstrom/blob/main/doc/workloads.md#workload-echo)
     ///
     /// A simple echo workload: a client sends a message, and expects to get that same message back from our server.
@@ -74,7 +75,7 @@ pub enum Payload<ID> {
     /// Clients ask servers to generate an ID, and the server should respond with an ID.
     Generate,
     /// Generated IDs may be of any type: strings, booleans, integers, floats, compound JSON values, etc.
-    GenerateOk { id: ID },
+    GenerateOk { id: IdType },
     /// At the start of a test, Maelstrom issues a single init message to each node.
     Init {
         /// The `node_id` field indicates the ID of the node which is receiving this message.
