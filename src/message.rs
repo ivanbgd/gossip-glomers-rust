@@ -15,25 +15,25 @@ use serde::{Deserialize, Serialize};
 ///
 /// Both `STDIN` and `STDOUT` messages are JSON objects, separated by newlines (`\n`).
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Message {
+pub struct Message<ID> {
     /// A string identifying the node this message came from.
     pub src: String,
     /// A string identifying the node this message is for.
     pub dest: String,
     /// An object: the body (payload) of the message.
-    pub body: Body,
+    pub body: Body<ID>,
 }
 
 /// Message bodies
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Body {
-    /// (optional) A unique integer identifier.
+pub struct Body<ID> {
+    /// (optional) A locally-unique integer identifier for a message from a node. It isn't globally-unique.
     pub msg_id: Option<usize>,
     /// (optional) For req/response, the `msg_id` of the request.
     pub in_reply_to: Option<usize>,
     /// (mandatory) A string identifying the type of message this is, plus optional data contained within.
     #[serde(flatten)]
-    pub payload: Payload,
+    pub payload: Payload<ID>,
 }
 
 /// Various payloads for message bodies
@@ -45,7 +45,7 @@ pub struct Body {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename_all = "snake_case")]
-pub enum Payload {
+pub enum Payload<ID> {
     /// [Workload: Echo](https://github.com/jepsen-io/maelstrom/blob/main/doc/workloads.md#workload-echo)
     ///
     /// A simple echo workload: a client sends a message, and expects to get that same message back from our server.
@@ -70,6 +70,11 @@ pub enum Payload {
         /// It is optional, and may contain any explanatory message you like.
         text: Option<String>,
     },
+    /// A simple workload for ID generation systems.
+    /// Clients ask servers to generate an ID, and the server should respond with an ID.
+    Generate,
+    /// Generated IDs may be of any type: strings, booleans, integers, floats, compound JSON values, etc.
+    GenerateOk { id: ID },
     /// At the start of a test, Maelstrom issues a single init message to each node.
     Init {
         /// The `node_id` field indicates the ID of the node which is receiving this message.

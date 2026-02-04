@@ -17,7 +17,7 @@ edition = "2024"
 # This is a special "default" feature that is enabled unless explicitly disabled.
 # Since we have it defined, we can just modify it here, and we don't have to provide
 # a node type on command line when building/running, and we shouldn't!
-default = ["echo_node"]
+default = ["unique_id_gen_node"]
 
 # Simple features that represent a node type that we'd like to test.
 # Used for conditional compilation within the code.
