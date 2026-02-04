@@ -1,6 +1,7 @@
 //! # The Gossip Glomers Library
 
 pub mod echo;
+pub mod logic;
 pub mod message;
 pub mod node;
 pub mod unique_id_gen;
