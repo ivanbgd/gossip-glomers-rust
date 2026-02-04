@@ -9,7 +9,8 @@
 //! Run as:
 //!
 //! ```
-//! cargo build && ~/maelstrom/maelstrom test -w echo --bin target/debug/gossip-glomers --node-count 1 --time-limit 10
+//! ~/maelstrom/maelstrom test -w echo --bin target/debug/echo --node-count 1 --time-limit 10
+//! cargo build && ~/maelstrom/maelstrom test -w echo --bin target/debug/echo --node-count 1 --time-limit 10
 //! ```
 //!
 //! This command instructs Maelstrom to run the `echo` workload against our binary.
@@ -21,9 +22,10 @@
 //!
 //! Everything looks good! ヽ(‘ー`)ノ
 
-use crate::message::{Body, Message, Payload};
-use crate::node::Node;
 use anyhow::{bail, Context, Result};
+use gossip_glomers::logic::main_loop;
+use gossip_glomers::message::{Body, Message, Payload};
+use gossip_glomers::node::Node;
 use std::fmt::Debug;
 use std::io::{StdoutLock, Write};
 
@@ -91,4 +93,8 @@ impl Node for EchoNode {
 
         Ok(())
     }
+}
+
+fn main() -> Result<()> {
+    main_loop::<EchoNode>()
 }

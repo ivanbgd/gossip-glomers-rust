@@ -5,17 +5,15 @@
 use crate::message::{InitPayload, Message, Payload};
 use crate::node::Node;
 use anyhow::{Context, Result};
+use std::fmt::Debug;
 use std::io;
 
 /// The main library loop.
-pub fn main_loop() -> Result<()> {
-    let mut node = {
-        #[cfg(feature = "echo_node")]
-        let node = crate::echo::EchoNode::new();
-        #[cfg(feature = "unique_id_gen_node")]
-        let node = crate::unique_id_gen::UniqueIDGeneratorNode::new();
-        node
-    };
+pub fn main_loop<N>() -> Result<()>
+where
+    N: Node + Debug,
+{
+    let mut node: N = Node::new();
 
     let mut stdout_lock = io::stdout().lock();
 

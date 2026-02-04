@@ -19,7 +19,8 @@
 //! Run as:
 //!
 //! ```
-//! cargo build && ~/maelstrom/maelstrom test -w unique-ids --bin target/debug/gossip-glomers --time-limit 30 --rate 1000 --node-count 3 --availability total --nemesis partition
+//! ~/maelstrom/maelstrom test -w unique-ids --bin target/debug/unique_id_gen --time-limit 30 --rate 1000 --node-count 3 --availability total --nemesis partition
+//! cargo build && ~/maelstrom/maelstrom test -w unique-ids --bin target/debug/unique_id_gen --time-limit 30 --rate 1000 --node-count 3 --availability total --nemesis partition
 //! ```
 //!
 //! This will run a 3-node cluster for 30 seconds and request new IDs at the rate of 1000 requests per second.
@@ -28,10 +29,11 @@
 //!
 //! Everything looks good! ヽ(‘ー`)ノ
 
-use crate::message::{Body, Message, Payload};
-use crate::node::Node;
-use crate::IdType;
 use anyhow::{bail, Context, Result};
+use gossip_glomers::logic::main_loop;
+use gossip_glomers::message::{Body, Message, Payload};
+use gossip_glomers::node::Node;
+use gossip_glomers::IdType;
 use std::fmt::Debug;
 use std::io::{StdoutLock, Write};
 
@@ -110,4 +112,8 @@ impl Node for UniqueIDGeneratorNode {
 
         Ok(())
     }
+}
+
+fn main() -> Result<()> {
+    main_loop::<UniqueIDGeneratorNode>()
 }
