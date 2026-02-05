@@ -65,19 +65,21 @@ Everything looks good! ヽ(‘ー`)ノ
 
 ### All Tests
 
-```shell
-cargo build
-~/maelstrom/maelstrom test -w echo --bin target/debug/echo --node-count 1 --time-limit 10
-~/maelstrom/maelstrom test -w unique-ids --bin target/debug/unique_id_gen --time-limit 30 --rate 1000 --node-count 3 --availability total --nemesis partition
-```
-
-- A shell script is provided to build all binaries (node types) and test them all in succession.
+- A shell script is provided to build all binaries (node types) and to test them all in succession.
 - It is configurable.
 - It contains default values for all tests as specified by Fly.io, and also values for quicker debugging.
 
 ```shell
-chmod +x ./test.sh
+chmod +x ./test.sh  # run once
 ./test.sh
+```
+
+- Or, manually:
+
+```shell
+cargo build
+~/maelstrom/maelstrom test -w echo --bin target/debug/echo --node-count 1 --time-limit 10
+~/maelstrom/maelstrom test -w unique-ids --bin target/debug/unique_id_gen --time-limit 30 --rate 1000 --node-count 3 --availability total --nemesis partition
 ```
 
 ## Debugging Maelstrom
