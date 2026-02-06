@@ -52,9 +52,9 @@ cargo build --release
 - For example:
 
 ```shell
-cargo build && ~/maelstrom/maelstrom test -w echo --bin target/debug/echo --node-count 1 --time-limit 10 --log-stderr
+cargo build --bin echo && ~/maelstrom/maelstrom test -w echo --bin target/debug/echo --node-count 1 --time-limit 10 --log-stderr
 # or
-cargo build && ~/maelstrom/maelstrom test -w echo --bin target/release/echo --node-count 1 --time-limit 10 --log-stderr
+cargo build --bin echo && ~/maelstrom/maelstrom test -w echo --bin target/release/echo --node-count 1 --time-limit 10 --log-stderr
 ```
 
 - Expected output:
@@ -77,7 +77,7 @@ chmod +x ./test.sh  # run once
 - Or, manually:
 
 ```shell
-cargo build
+cargo build --all-targets
 ~/maelstrom/maelstrom test -w echo --bin target/debug/echo --node-count 1 --time-limit 10
 ~/maelstrom/maelstrom test -w unique-ids --bin target/debug/unique_id_gen --time-limit 30 --rate 1000 --node-count 3 --availability total --nemesis partition
 ```
@@ -94,3 +94,11 @@ cargo build
 - Consult the Maelstrom [result documentation](https://github.com/jepsen-io/maelstrom/blob/main/doc/results.md)
   for further details.
 - It is beneficial to have the graph/plotting libraries installed, because of generated visualizations.
+
+## Official Documentation
+
+- [Jepsen](https://github.com/jepsen-io/jepsen)
+- [Maelstrom](https://github.com/jepsen-io/maelstrom)
+- [Maelstrom: Protocol](https://github.com/jepsen-io/maelstrom/blob/main/doc/protocol.md)
+- [Maelstrom: Workloads](https://github.com/jepsen-io/maelstrom/blob/main/doc/workloads.md)
+- [Maelstrom: Understanding Test Results](https://github.com/jepsen-io/maelstrom/blob/main/doc/results.md)

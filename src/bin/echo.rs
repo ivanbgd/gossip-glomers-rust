@@ -4,14 +4,12 @@
 //!
 //! A simple echo workload: a client sends a message, and expects to get that same message back from our server.
 //!
-//! https://github.com/jepsen-io/maelstrom/blob/main/doc/workloads.md#workload-echo
+//! [Workload: Echo](https://github.com/jepsen-io/maelstrom/blob/main/doc/workloads.md#workload-echo)
 //!
 //! Run as:
 //!
 //! ```
 //! ~/maelstrom/maelstrom test -w echo --bin target/debug/echo --node-count 1 --time-limit 10
-//!
-//! cargo build && ~/maelstrom/maelstrom test -w echo --bin target/debug/echo --node-count 1 --time-limit 10
 //!
 //! cargo build --bin echo && ~/maelstrom/maelstrom test -w echo --bin target/debug/echo --node-count 1 --time-limit 3
 //! ```
@@ -27,7 +25,7 @@
 
 use anyhow::{bail, Result};
 use gossip_glomers::logic::main_loop;
-use gossip_glomers::message::{Message, Payload};
+use gossip_glomers::message::{EchoPayload, Message, Payload};
 use gossip_glomers::node::Node;
 use std::fmt::Debug;
 use std::io::StdoutLock;
@@ -71,11 +69,13 @@ impl Node for EchoNode {
 
     fn step(&mut self, request: Message<Payload>, output_lock: &mut StdoutLock) -> Result<()> {
         match request.body.payload {
-            Payload::Echo { echo } => {
-                let payload = Payload::EchoOk { echo };
-                self.respond(request.src, request.body.msg_id, payload, output_lock)?;
-            }
-            Payload::EchoOk { .. } => {}
+            Payload::Echo(echo_payload) => match echo_payload {
+                EchoPayload::Echo { echo } => {
+                    let payload = Payload::Echo(EchoPayload::EchoOk { echo });
+                    self.respond(request.src, request.body.msg_id, payload, output_lock)?;
+                }
+                EchoPayload::EchoOk { .. } => {}
+            },
             other => bail!("received unexpected request message type: {other:?}"),
         }
 

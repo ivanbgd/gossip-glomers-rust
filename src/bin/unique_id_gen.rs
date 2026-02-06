@@ -14,14 +14,12 @@
 //!
 //! Generated IDs may be of any type: strings, booleans, integers, floats, compound JSON values, etc.
 //!
-//! https://github.com/jepsen-io/maelstrom/blob/main/doc/workloads.md#workload-unique-ids
+//! [Workload: Unique-ids](https://github.com/jepsen-io/maelstrom/blob/main/doc/workloads.md#workload-unique-ids)
 //!
 //! Run as:
 //!
 //! ```
 //! ~/maelstrom/maelstrom test -w unique-ids --bin target/debug/unique_id_gen --time-limit 30 --rate 1000 --node-count 3 --availability total --nemesis partition
-//!
-//! cargo build && ~/maelstrom/maelstrom test -w unique-ids --bin target/debug/unique_id_gen --time-limit 30 --rate 1000 --node-count 3 --availability total --nemesis partition
 //!
 //! cargo build --bin unique_id_gen && ~/maelstrom/maelstrom test -w unique-ids --bin target/debug/unique_id_gen --time-limit 3 --rate 1000 --node-count 3 --availability total --nemesis partition
 //! ```
@@ -34,7 +32,7 @@
 
 use anyhow::{bail, Result};
 use gossip_glomers::logic::main_loop;
-use gossip_glomers::message::{Message, Payload};
+use gossip_glomers::message::{GeneratePayload, Message, Payload};
 use gossip_glomers::node::Node;
 use gossip_glomers::IdType;
 use std::fmt::Debug;
@@ -84,16 +82,18 @@ impl Node for UniqueIDGeneratorNode {
 
     fn step(&mut self, request: Message<Payload>, output_lock: &mut StdoutLock) -> Result<()> {
         match request.body.payload {
-            Payload::Generate => {
-                let this = self.node_id.clone().expect("expected some self.node_id");
-                let msg_id = self.msg_id;
-                self.guid = format!("{this}-{msg_id}");
-                let payload = Payload::GenerateOk {
-                    id: self.guid.clone(),
-                };
-                self.respond(request.src, request.body.msg_id, payload, output_lock)?;
-            }
-            Payload::GenerateOk { .. } => {}
+            Payload::UniqueIdGen(generate_payload) => match generate_payload {
+                GeneratePayload::Generate => {
+                    let this = self.node_id.clone().expect("expected some self.node_id");
+                    let msg_id = self.msg_id;
+                    self.guid = format!("{this}-{msg_id}");
+                    let payload = Payload::UniqueIdGen(GeneratePayload::GenerateOk {
+                        id: self.guid.clone(),
+                    });
+                    self.respond(request.src, request.body.msg_id, payload, output_lock)?;
+                }
+                GeneratePayload::GenerateOk { .. } => {}
+            },
             other => bail!("received unexpected request message type: {other:?}"),
         }
 

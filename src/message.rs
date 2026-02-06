@@ -64,18 +64,11 @@ pub enum InitPayload {
 ///
 /// This does *not* include the initialization-by-Maelstrom payload types.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(tag = "type")]
 #[serde(rename_all = "snake_case")]
+#[serde(untagged)]
 pub enum Payload {
-    /// [Workload: Echo](https://github.com/jepsen-io/maelstrom/blob/main/doc/workloads.md#workload-echo)
-    ///
     /// A simple echo workload: a client sends a message, and expects to get that same message back from our server.
-    ///
-    /// Clients send echo messages to servers with an `echo` field containing an arbitrary payload
-    /// they'd like to have sent back.
-    Echo { echo: String },
-    /// Servers should respond with `echo_ok` messages containing that same payload.
-    EchoOk { echo: String },
+    Echo(EchoPayload),
     /// In response to a Maelstrom RPC request, a node may respond with an error message,
     /// whose body is a JSON object.
     ///
@@ -92,9 +85,32 @@ pub enum Payload {
         text: Option<String>,
     },
     /// A simple workload for ID generation systems.
-    /// Clients ask servers to generate an ID, and the server should respond with an ID.
+    UniqueIdGen(GeneratePayload),
+}
+
+/// A simple echo workload: a client sends a message, and expects to get that same message back from our server.
+///
+/// Clients send echo messages to servers with an `echo` field containing an arbitrary payload
+/// they'd like to have sent back.
+///
+/// Servers should respond with `echo_ok` messages containing that same payload.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(tag = "type")]
+#[serde(rename_all = "snake_case")]
+pub enum EchoPayload {
+    Echo { echo: String },
+    EchoOk { echo: String },
+}
+
+/// A simple workload for ID generation systems.
+/// Clients ask servers to generate an ID, and the server should respond with an ID.
+///
+/// Generated IDs may be of any type: strings, booleans, integers, floats, compound JSON values, etc.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(tag = "type")]
+#[serde(rename_all = "snake_case")]
+pub enum GeneratePayload {
     Generate,
-    /// Generated IDs may be of any type: strings, booleans, integers, floats, compound JSON values, etc.
     GenerateOk { id: IdType },
 }
 
