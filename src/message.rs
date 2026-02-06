@@ -55,36 +55,23 @@ pub enum InitPayload {
     InitOk,
 }
 
-/// Various payloads for message bodies
+/// Various payloads for message bodies.
 ///
-/// Inherently contains the mandatory message type (in the variant's name), and optionally additional data.
+/// Inherently contains the mandatory message type (in the nested variant's name), and optionally additional data.
 ///
 /// The various message types and the meanings of their fields are defined in the
 /// [workload documentation](https://github.com/jepsen-io/maelstrom/blob/main/doc/workloads.md).
 ///
 /// This does *not* include the initialization-by-Maelstrom payload types.
+///
+/// Payloads are grouped per node types; they are nested inside the groups.
+/// The group names are not serde'd.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 #[serde(untagged)]
 pub enum Payload {
-    /// A simple echo workload: a client sends a message, and expects to get that same message back from our server.
     Echo(EchoPayload),
-    /// In response to a Maelstrom RPC request, a node may respond with an error message,
-    /// whose body is a JSON object.
-    ///
-    /// The `type` of error body is always `"error"`.
-    ///
-    /// As with all RPC responses, the `in_reply_to` field is the `msg_id` of the request which caused this error.
-    Error {
-        /// The `code` is an integer which indicates the type of error which occurred.
-        /// Maelstrom defines several error types, and you can also invent your own.
-        /// Codes `0-999` are reserved for Maelstrom's use; codes `1000` and above are free for your own purposes.
-        code: ErrorCode,
-        /// The `text` field is a free-form string.
-        /// It is optional, and may contain any explanatory message you like.
-        text: Option<String>,
-    },
-    /// A simple workload for ID generation systems.
+    Error(ErrorPayload),
     UniqueIdGen(GeneratePayload),
 }
 
@@ -102,16 +89,23 @@ pub enum EchoPayload {
     EchoOk { echo: String },
 }
 
-/// A simple workload for ID generation systems.
-/// Clients ask servers to generate an ID, and the server should respond with an ID.
+/// In response to a Maelstrom RPC request, a node may respond with an error message,
+/// whose body is a JSON object.
 ///
-/// Generated IDs may be of any type: strings, booleans, integers, floats, compound JSON values, etc.
+/// The `type` of error body is always `"error"`.
+///
+/// As with all RPC responses, the `in_reply_to` field is the `msg_id` of the request which caused this error.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename_all = "snake_case")]
-pub enum GeneratePayload {
-    Generate,
-    GenerateOk { id: IdType },
+pub struct ErrorPayload {
+    /// The `code` is an integer which indicates the type of error which occurred.
+    /// Maelstrom defines several error types, and you can also invent your own.
+    /// Codes `0-999` are reserved for Maelstrom's use; codes `1000` and above are free for your own purposes.
+    pub code: ErrorCode,
+    /// The `text` field is a free-form string.
+    /// It is optional, and may contain any explanatory message you like.
+    pub text: Option<String>,
 }
 
 /// Indicates the type of error which occurred.
@@ -124,5 +118,17 @@ pub enum GeneratePayload {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[repr(usize)]
 pub enum ErrorCode {
-    MinCode = 1000,
+    SomeErrorCode = 1000,
+}
+
+/// A simple workload for ID generation systems.
+/// Clients ask servers to generate an ID, and the server should respond with an ID.
+///
+/// Generated IDs may be of any type: strings, booleans, integers, floats, compound JSON values, etc.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(tag = "type")]
+#[serde(rename_all = "snake_case")]
+pub enum GeneratePayload {
+    Generate,
+    GenerateOk { id: IdType },
 }
