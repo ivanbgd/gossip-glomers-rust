@@ -11,7 +11,7 @@
 
 use crate::IdType;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 /// Messages
 ///
@@ -83,17 +83,24 @@ pub enum Payload {
 #[serde(tag = "type")]
 #[serde(rename_all = "snake_case")]
 pub enum BroadcastPayload {
-    Broadcast {
-        message: usize,
-    },
+    /// This message requests that a value be broadcast out to all nodes in the cluster.
+    /// The value is always an integer, and it is unique for each message from Maelstrom.
+    ///
+    /// Our node should store the `message` value locally so it can be read later.
+    Broadcast { message: usize },
+    /// In response, it should send an acknowledgement with a `broadcast_ok` message.
     BroadcastOk,
+    /// This message requests that a node returns all values that it has seen.
     Read,
-    ReadOk {
-        messages: Vec<usize>,
-    },
+    /// In response, it should return a `read_ok` message with a list of values it has seen.
+    ///
+    /// The order of the returned values does not matter.
+    ReadOk { messages: HashSet<usize> },
+    /// This message informs the node of who its neighboring nodes are.
     Topology {
         topology: HashMap<String, Vec<String>>,
     },
+    /// In response, your node should return a `topology_ok` message body.
     TopologyOk,
 }
 

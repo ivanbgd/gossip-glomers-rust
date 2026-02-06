@@ -72,7 +72,13 @@ impl Node for EchoNode {
             Payload::Echo(echo_payload) => match echo_payload {
                 EchoPayload::Echo { echo } => {
                     let payload = Payload::Echo(EchoPayload::EchoOk { echo });
-                    self.respond(request.src, request.body.msg_id, payload, output_lock)?;
+                    self.respond(
+                        request.src,
+                        request.body.msg_id,
+                        payload,
+                        output_lock,
+                        "echo_ok",
+                    )?;
                 }
                 EchoPayload::EchoOk { .. } => {}
             },

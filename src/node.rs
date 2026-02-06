@@ -14,6 +14,8 @@ pub trait Node {
     fn set_node_id(&mut self, value: Option<String>);
 
     /// Respond to initialization by Maelstrom.
+    ///
+    /// Increments `self.msg_id`.
     fn init_response(
         &mut self,
         request: Message<InitPayload>,
@@ -55,25 +57,63 @@ pub trait Node {
     /// Respond to any request that is not initialization.
     ///
     /// Designed to be used inside the [`Node::step()`] method.
+    ///
+    /// Increments `self.msg_id`.
     fn respond(
         &mut self,
-        req_src: String,
-        req_msg_id: Option<usize>,
+        dest: String,
+        in_reply_to: Option<usize>,
         payload: Payload,
         output_lock: &mut StdoutLock,
+        msg_type: &str,
     ) -> Result<()> {
         let response = Message {
             src: self.get_node_id().expect("expected some self.node_id"), // == request.dest,
-            dest: req_src,
+            dest,
             body: Body {
                 msg_id: Some(self.get_msg_id()),
-                in_reply_to: req_msg_id,
+                in_reply_to,
                 payload,
             },
         };
 
-        serde_json::to_writer(&mut *output_lock, &response)
-            .context("serialization of response echo_ok message failed")?;
+        serde_json::to_writer(&mut *output_lock, &response).context(format!(
+            "serialization of response {msg_type} message failed"
+        ))?;
+        output_lock
+            .write_all(b"\n")
+            .context("failed to write newline")?;
+
+        self.incr_msg_id();
+
+        Ok(())
+    }
+
+    /// Send a request to another node.
+    ///
+    /// Designed to be used inside the [`Node::step()`] method.
+    ///
+    /// Increments `self.msg_id`.
+    fn request(
+        &mut self,
+        dest: String,
+        payload: Payload,
+        output_lock: &mut StdoutLock,
+        msg_type: &str,
+    ) -> Result<()> {
+        let response = Message {
+            src: self.get_node_id().expect("expected some self.node_id"),
+            dest,
+            body: Body {
+                msg_id: Some(self.get_msg_id()),
+                in_reply_to: None,
+                payload,
+            },
+        };
+
+        serde_json::to_writer(&mut *output_lock, &response).context(format!(
+            "serialization of request {msg_type} message failed"
+        ))?;
         output_lock
             .write_all(b"\n")
             .context("failed to write newline")?;

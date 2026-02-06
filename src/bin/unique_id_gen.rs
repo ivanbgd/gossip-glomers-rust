@@ -84,13 +84,20 @@ impl Node for UniqueIDGeneratorNode {
         match request.body.payload {
             Payload::UniqueIdGen(generate_payload) => match generate_payload {
                 GeneratePayload::Generate => {
-                    let this = self.node_id.clone().expect("expected some self.node_id");
+                    let node_id = self.node_id.clone().expect("expected some self.node_id");
                     let msg_id = self.msg_id;
-                    self.guid = format!("{this}-{msg_id}");
+                    self.guid = format!("{node_id}-{msg_id}");
+
                     let payload = Payload::UniqueIdGen(GeneratePayload::GenerateOk {
                         id: self.guid.clone(),
                     });
-                    self.respond(request.src, request.body.msg_id, payload, output_lock)?;
+                    self.respond(
+                        request.src,
+                        request.body.msg_id,
+                        payload,
+                        output_lock,
+                        "generate_ok",
+                    )?;
                 }
                 GeneratePayload::GenerateOk { .. } => {}
             },
