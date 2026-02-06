@@ -21,6 +21,10 @@ path = "src/bin/echo.rs"
 name = "unique_id_gen"
 path = "src/bin/unique_id_gen.rs"
 
+[[bin]]
+name = "broadcast"
+path = "src/bin/broadcast.rs"
+
 [dependencies]
 anyhow = "1"
 serde = { version = "1", features = ["derive"] }

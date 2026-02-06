@@ -37,17 +37,17 @@ use std::io::StdoutLock;
 /// Maelstrom sets the node ID for our node(s), during the initialization phase.
 #[derive(Default, Debug)]
 pub struct EchoNode {
-    /// A locally-unique integer identifier for a message from a node. It isn't globally-unique.
-    pub msg_id: usize,
     /// A unique node name. Maelstrom sets the node ID for our node(s), during the initialization phase.
     pub node_id: Option<String>,
+    /// A locally-unique integer identifier for a message from a node. It isn't globally-unique.
+    pub msg_id: usize,
 }
 
 impl Node for EchoNode {
     fn new() -> Self {
         Self {
-            msg_id: 0,
             node_id: None,
+            msg_id: 0,
         }
     }
 

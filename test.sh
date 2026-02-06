@@ -46,3 +46,8 @@ printf "\n\n\n\n\n\n"
 printf "\n\n\n\n\n\n" && sleep "$SLEEP"
 #~/maelstrom/maelstrom test -w unique-ids --bin target/"$PROFILE"/unique_id_gen --time-limit 30 --rate 1000 --node-count 3 --availability total --nemesis partition
 ~/maelstrom/maelstrom test -w unique-ids --bin target/"$PROFILE"/unique_id_gen --time-limit "$DURATION" --rate 1000 --node-count 3 --availability total --nemesis partition
+
+# Broadcast
+printf "\n\n\n\n\n\n" && sleep "$SLEEP"
+#~/maelstrom/maelstrom test -w broadcast --bin target/"$PROFILE"/broadcast --node-count 1 --time-limit 20 --rate 10
+~/maelstrom/maelstrom test -w broadcast --bin target/"$PROFILE"/broadcast --node-count 1 --time-limit "$DURATION" --rate 10

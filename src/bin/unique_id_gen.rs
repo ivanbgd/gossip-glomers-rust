@@ -46,10 +46,10 @@ use std::io::StdoutLock;
 /// Generated IDs may be of any type: strings, booleans, integers, floats, compound JSON values, etc.
 #[derive(Default, Debug)]
 pub struct UniqueIDGeneratorNode {
-    /// A locally-unique integer identifier for a message from a node. It isn't globally-unique.
-    pub msg_id: usize,
     /// A unique node name. Maelstrom sets the node ID for our node(s), during the initialization phase.
     pub node_id: Option<String>,
+    /// A locally-unique integer identifier for a message from a node. It isn't globally-unique.
+    pub msg_id: usize,
     /// A generated globally-unique ID.
     /// It may be of any type: strings, booleans, integers, floats, compound JSON values, etc.
     pub guid: IdType,
@@ -58,8 +58,8 @@ pub struct UniqueIDGeneratorNode {
 impl Node for UniqueIDGeneratorNode {
     fn new() -> Self {
         Self {
-            msg_id: 0,
             node_id: None,
+            msg_id: 0,
             guid: IdType::new(),
         }
     }

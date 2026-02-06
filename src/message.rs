@@ -11,6 +11,7 @@
 
 use crate::IdType;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 /// Messages
 ///
@@ -70,9 +71,30 @@ pub enum InitPayload {
 #[serde(rename_all = "snake_case")]
 #[serde(untagged)]
 pub enum Payload {
+    Broadcast(BroadcastPayload),
     Echo(EchoPayload),
     Error(ErrorPayload),
     UniqueIdGen(GeneratePayload),
+}
+
+/// A broadcast system. Essentially a test of eventually-consistent set addition,
+/// but also provides an initial `topology` message to the cluster with a set of neighbors for each node to use.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(tag = "type")]
+#[serde(rename_all = "snake_case")]
+pub enum BroadcastPayload {
+    Broadcast {
+        message: usize,
+    },
+    BroadcastOk,
+    Read,
+    ReadOk {
+        messages: Vec<usize>,
+    },
+    Topology {
+        topology: HashMap<String, Vec<String>>,
+    },
+    TopologyOk,
 }
 
 /// A simple echo workload: a client sends a message, and expects to get that same message back from our server.
