@@ -20,7 +20,10 @@
 //!
 //! ```
 //! ~/maelstrom/maelstrom test -w unique-ids --bin target/debug/unique_id_gen --time-limit 30 --rate 1000 --node-count 3 --availability total --nemesis partition
+//!
 //! cargo build && ~/maelstrom/maelstrom test -w unique-ids --bin target/debug/unique_id_gen --time-limit 30 --rate 1000 --node-count 3 --availability total --nemesis partition
+//!
+//! cargo build --bin unique_id_gen && ~/maelstrom/maelstrom test -w unique-ids --bin target/debug/unique_id_gen --time-limit 3 --rate 1000 --node-count 3 --availability total --nemesis partition
 //! ```
 //!
 //! This will run a 3-node cluster for 30 seconds and request new IDs at the rate of 1000 requests per second.
@@ -29,13 +32,13 @@
 //!
 //! Everything looks good! ヽ(‘ー`)ノ
 
-use anyhow::{bail, Context, Result};
+use anyhow::{bail, Result};
 use gossip_glomers::logic::main_loop;
-use gossip_glomers::message::{Body, Message, Payload};
+use gossip_glomers::message::{Message, Payload};
 use gossip_glomers::node::Node;
 use gossip_glomers::IdType;
 use std::fmt::Debug;
-use std::io::{StdoutLock, Write};
+use std::io::StdoutLock;
 
 /// # The Unique ID Generator Node (Server)
 ///
@@ -85,26 +88,10 @@ impl Node for UniqueIDGeneratorNode {
                 let this = self.node_id.clone().expect("expected some self.node_id");
                 let msg_id = self.msg_id;
                 self.guid = format!("{this}-{msg_id}");
-
-                let response = Message {
-                    src: this,
-                    dest: request.src,
-                    body: Body {
-                        msg_id: Some(self.msg_id),
-                        in_reply_to: request.body.msg_id,
-                        payload: Payload::GenerateOk {
-                            id: self.guid.clone(),
-                        },
-                    },
+                let payload = Payload::GenerateOk {
+                    id: self.guid.clone(),
                 };
-
-                serde_json::to_writer(&mut *output_lock, &response)
-                    .context("serialization of response generate_ok message failed")?;
-                output_lock
-                    .write_all(b"\n")
-                    .context("failed to write newline")?;
-
-                self.msg_id += 1;
+                self.respond(request.src, request.body.msg_id, payload, output_lock)?;
             }
             Payload::GenerateOk { .. } => {}
             other => bail!("received unexpected request message type: {other:?}"),

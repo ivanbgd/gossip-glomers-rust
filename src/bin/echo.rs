@@ -10,7 +10,10 @@
 //!
 //! ```
 //! ~/maelstrom/maelstrom test -w echo --bin target/debug/echo --node-count 1 --time-limit 10
+//!
 //! cargo build && ~/maelstrom/maelstrom test -w echo --bin target/debug/echo --node-count 1 --time-limit 10
+//!
+//! cargo build --bin echo && ~/maelstrom/maelstrom test -w echo --bin target/debug/echo --node-count 1 --time-limit 3
 //! ```
 //!
 //! This command instructs Maelstrom to run the `echo` workload against our binary.
@@ -22,12 +25,12 @@
 //!
 //! Everything looks good! ヽ(‘ー`)ノ
 
-use anyhow::{bail, Context, Result};
+use anyhow::{bail, Result};
 use gossip_glomers::logic::main_loop;
-use gossip_glomers::message::{Body, Message, Payload};
+use gossip_glomers::message::{Message, Payload};
 use gossip_glomers::node::Node;
 use std::fmt::Debug;
-use std::io::{StdoutLock, Write};
+use std::io::StdoutLock;
 
 /// # The Echo Node (Server)
 ///
@@ -69,23 +72,8 @@ impl Node for EchoNode {
     fn step(&mut self, request: Message<Payload>, output_lock: &mut StdoutLock) -> Result<()> {
         match request.body.payload {
             Payload::Echo { echo } => {
-                let response = Message {
-                    src: self.node_id.clone().expect("expected some self.node_id"), // == request.dest,
-                    dest: request.src,
-                    body: Body {
-                        msg_id: Some(self.msg_id),
-                        in_reply_to: request.body.msg_id,
-                        payload: Payload::EchoOk { echo },
-                    },
-                };
-
-                serde_json::to_writer(&mut *output_lock, &response)
-                    .context("serialization of response echo_ok message failed")?;
-                output_lock
-                    .write_all(b"\n")
-                    .context("failed to write newline")?;
-
-                self.msg_id += 1;
+                let payload = Payload::EchoOk { echo };
+                self.respond(request.src, request.body.msg_id, payload, output_lock)?;
             }
             Payload::EchoOk { .. } => {}
             other => bail!("received unexpected request message type: {other:?}"),
